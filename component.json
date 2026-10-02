@@ -1,0 +1,15 @@
+{
+  "name": "plugin.sql",
+  "slug": "sql",
+  "source": "sql",
+  "world": "provider",
+  "binding": "provider",
+  "members": [
+    "sql",
+    "sql-vec"
+  ],
+  "artifacts": [
+    "plugin.sql.wasm",
+    "plugin.sql-vec.wasm"
+  ]
+}
