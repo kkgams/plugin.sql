@@ -100,11 +100,11 @@
     "LICENSES/wasmtime-Apache-LLVM.txt": "268872b9816f90fd8e85db5a28d33f8150ebb8dd016653fb39ef1f94f2686bc5",
     "LICENSES/wit-bindgen-Apache.txt": "a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2",
     "LICENSES/wit-bindgen-MIT.txt": "23f18e03dc49df91622fe2a76176497404e46ced8a715d9d2b67a7446571cca3",
-    "LICENSING.md": "9c90a7d909f589c226e600b2cd66f551d7769ba9de2b67fc2ee5e9d751de256e",
+    "LICENSING.md": "7d6a90dc1c2980a26c15beff2fce81ebf6b06b7fba0238990cdcde1725ce0272",
     "Makefile": "bebe6c97ccd2d043a593ba5e1a2b27a0c4ff036f2ece06745806deead7d257bf",
-    "README.md": "238134a7ee927c2c42ea9687b8eaf4d8783bd4fe9f25800cfca59d76dc753de7",
-    "SOURCE-INPUTS.json": "7abcffc32b42d6f51d6b06c5882ce58f45461e598a2fe4cfa3a0c6b61e730787",
-    "THIRD-PARTY-REVIEW.md": "90ff64236123d40f10423b39a41147e7798f76bc2e87e66b44317d06dc491c1a",
+    "README.md": "2fbe16dd6949ed9e73e0f073d5c19000f89457d4932ab31882a54af63bae8cc7",
+    "SOURCE-INPUTS.json": "349ad17706d1c5b74632ca76219fefe7bfcd8be7d9796857928c4b837d6bd617",
+    "THIRD-PARTY-REVIEW.md": "455972d1f9dccf2385b6e42b74538ba6308530f4a674292d488dbc14afa7f1f7",
     "THIRD-PARTY-SOURCE.json": "8a083d5ff126b335ec7a8f68306d6626f840b8bd9c6b886c11f02fa4c9774919",
     "component.json": "ae70c056058946f6131c2d9aecc6e13040056a20c56759835592df8bcf62d640",
     "flake.lock": "3adbe3447e662145dd50a383489f62e7bfbe16996281e113b1fbac347eca3eae",
@@ -154,7 +154,7 @@
     "scripts/wasm-notices.py": "91d94800f753ae948e9289393da9b6b63f6dc24e154a41fbdae2fd59f9305d85",
     "test/runtime.mjs": "d0bcae167cdbf0b4bc9f6a02821a03a8d7469fdaa18a14a10ca2ddcca0ea1c7c",
     "test/test_integrity.py": "35936d0df14d552d49acf5aaa707dbd38024dbc164acf7c939ebedbe0f5219f2",
-    "version.txt": "1f930dd1f133c1f97a94fe3acb8db34372cf4c01ffdb2b3ff4ca72f9494121e9"
+    "version.txt": "71015c979ccb0fc8a0be7ca0ae83046ab045cdc2c8faa09fb2f0f7e440f9b4a6"
   },
   "findings": [
     "Generated C component ABI glue uses flake-pinned wit-bindgen v0.57.1 (2e00369a643c0c8048b8636401e36b0cbf2dfb05); complete upstream MIT/Apache choices retained, not assumed owner-authored glue. Generated Go ABI bindings use the separately inventoried wit-bindgen-go module tool.",
@@ -309,9 +309,43 @@
       "plugins/sql.comp/wit/types.wit"
     ]
   },
+  "release_0_2_1": {
+    "baseline_commit": "bb366e370558157c36519a2398a64f56871a45c4",
+    "boundary": "Only distribution version and approval-status documentation, exact inventories, and NOTICE evidence suffix. License bodies, NOTICE body, third-party source, dependencies, API/WIT, tests, workflow guards and verification exclusions unchanged.",
+    "changed_inputs": {
+      "LICENSING.md": {
+        "after": "7d6a90dc1c2980a26c15beff2fce81ebf6b06b7fba0238990cdcde1725ce0272",
+        "before": "9c90a7d909f589c226e600b2cd66f551d7769ba9de2b67fc2ee5e9d751de256e"
+      },
+      "README.md": {
+        "after": "2fbe16dd6949ed9e73e0f073d5c19000f89457d4932ab31882a54af63bae8cc7",
+        "before": "238134a7ee927c2c42ea9687b8eaf4d8783bd4fe9f25800cfca59d76dc753de7"
+      },
+      "SOURCE-INPUTS.json": {
+        "after": "349ad17706d1c5b74632ca76219fefe7bfcd8be7d9796857928c4b837d6bd617",
+        "before": "7abcffc32b42d6f51d6b06c5882ce58f45461e598a2fe4cfa3a0c6b61e730787"
+      },
+      "THIRD-PARTY-REVIEW.md": {
+        "after": "455972d1f9dccf2385b6e42b74538ba6308530f4a674292d488dbc14afa7f1f7",
+        "before": "90ff64236123d40f10423b39a41147e7798f76bc2e87e66b44317d06dc491c1a"
+      },
+      "version.txt": {
+        "after": "71015c979ccb0fc8a0be7ca0ae83046ab045cdc2c8faa09fb2f0f7e440f9b4a6",
+        "before": "1f930dd1f133c1f97a94fe3acb8db34372cf4c01ffdb2b3ff4ca72f9494121e9"
+      }
+    },
+    "date": "2026-10-12",
+    "history": "Existing audit fields and documentation_cleanup retained verbatim as historical records, not current manual approval blockers.",
+    "owner_instruction": "Licensing/checksums already prepared; remove pending manual checksum/license/hosted-review approvals; authorize local commits and annotated tags. No pushes, publications, or approval-variable changes in this preparation.",
+    "previous_evidence_sha256": "d60e8f89be0a87e016e4b00554ee2f0e071b16b8562611e4359210bca377c78d",
+    "previous_notice_sha256": "252860fcea75e68e080d7a02fa3659b8bd44616889f4ff24987c10729d2310b0",
+    "previous_source_inputs_sha256": "7abcffc32b42d6f51d6b06c5882ce58f45461e598a2fe4cfa3a0c6b61e730787",
+    "refresh_script_sha256": "a91f4f97c04ec7b324e7ce42f1e8dccd0e49439dba540e5d4e8ae40b802547b5",
+    "validation": "Hosted execution and absent runtime/platform coverage not certified. Technical fail-closed digest, artifact and immutable-publication gates remain enforced."
+  },
   "repository": "plugin.sql",
   "schema": 1,
-  "scope": "historical third-party source audit plus bounded documentation cleanup; no new build or audit executed",
+  "scope": "preserved historical audit and cleanup plus bounded 0.2.1 release preparation; no new legal audit",
   "shipped_host_source_files": [],
   "source_comparison_exclusions": {
     "directories": [
