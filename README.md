@@ -1,76 +1,31 @@
 # plugin.sql
 
-GAMS WASM Project Unit for SQLite database access.
-Distribution and WIT interface versions are independent.
+SQLite database access for [GAMS](https://github.com/kkgams/gams).
+
+| Unit | Source | Original work | License |
+| --- | --- | --- | --- |
+| SQL provider | `plugins/sql.comp/` | [SQLite contributors](https://sqlite.org/), GAMS contributors | [LICENSE](LICENSE), [full original terms](LICENSES/), [NOTICE](NOTICE) |
+| SQL-vec provider | `plugins/sql-vec.comp/`, shared `sql-common/` | SQLite contributors; [sqlite-vec, Alex Garcia](https://github.com/asg017/sqlite-vec) | [LICENSE](LICENSE), [full original terms](LICENSES/), [NOTICE](NOTICE) |
+
+## Development
+
+Use the pinned C/WASI and Rust test toolchain: `nix develop --command make <target>`.
+
+| Command | Purpose |
+| --- | --- |
+| `make build` | Compile both providers with embedded complete terms. |
+| `make test` | Run existing query and vec_version assertions through native Wasmtime resource calls. |
+| `make package` | Build plugin.sql.wasm, plugin.sql-vec.wasm, LICENSES.zip and SHA256SUMS under build.nosync/. |
+| `make open` | Build and open this local Project in released macOS Apple Silicon Host. |
+| `make docs` | Build pinned wiki in build.nosync/site/. |
+| `make serve-docs` | Serve wiki; independent DOCS_PORT defaults to 8080. |
+| `make validate-docs` | Validate wiki content. |
+| `make clean` | Remove build.nosync and identified downloads; refuse tracked paths/symlinks and preserve supplied tools/Units. |
+
+The local Project loads only the default SQL provider and the released SQL console with an in-memory database. Try `SELECT 42 AS answer;`; data disappears when the Host exits. To use vectors, replace the one local provider path with `build.nosync/plugin.sql-vec.wasm`. First launch downloads pinned supporting Units; an existing Host is never updated implicitly.
+
+Native Rust/Wasmtime tests retain connection/statement/query resource assertions for both providers and vec_version for SQL-vec. They compile separate test components, not release packages. Historical external Host tests remain available but are not standalone coverage. Full API and GUI integration need separate verification.
 
 ## API
 
-Both components export `types` and `readwrite` from `wasi:sql@0.2.0-draft`
-through the `provider` world. The API provides connections/statements and
-`query`/`exec` operations. `plugin.sql-vec.wasm` adds sqlite-vec support.
-Choose a provider: these artifacts implement the same WIT identity and must
-not be registered as duplicate providers for that identity.
-
-The contract is in `plugins/sql.comp/wit/package.wit`.
-The accompanying `types.wit` and `readwrite.wit` define the database API.
-Plugin Manager resolves imports; distribution filenames do not rename WIT identities.
-
-## Build and test
-
-All source/build inputs are owned by this repository; no sibling checkout is
-required for its supported build/test commands. Use the pinned Nix environment:
-
-```sh
-nix develop --command make build
-nix develop --command make test
-```
-
-Outputs: `dist/plugin.sql.wasm` and `dist/plugin.sql-vec.wasm`. Install the
-chosen provider as `plugins/sql.comp.wasm` or `plugins/sql-vec.comp.wasm`
-in an external GAMS Project. A local development Project is also included.
-
-The flake and lockfiles pin the toolchain. Network access may be required to
-fetch tools/modules. `.envrc` supports `direnv allow`.
-
-`make test` runs offline integrity/publication regression tests, builds the
-components, validates WASM, extracts WIT, and checks the exact input inventory.
-It also transpiles the built components with jco and runs standalone WASM
-runtime assertions. These are bounded smoke checks, not full API or Host
-integration coverage.
-
-## Licensing and releases
-
-GAMS-authored contributions are Apache-2.0. Third-party code retains its own
-terms; see `LICENSING.md`, `THIRD-PARTY-REVIEW.md`, and `LICENSES/`.
-Source inventory and notice evidence are checked before candidate packaging.
-Changed inputs require separately authorized evidence refreshes; source snapshot
-verification remains strict and is not refreshed by release tooling.
-
-Distribution is through GitHub Releases, not npm or OCI. Pushing a matching
-`v<version.txt>` tag authorizes publication from that commit; no approval digest
-variables or required publication branch are used. Manual workflow dispatch
-verifies without publishing. Build/tests, canonical repository and tag/version
-identity, legal texts and embedded notices, evidence/source inventory, artifact
-checksums, candidate integrity, and no-overwrite checks must pass. Never reuse
-or move a published or failed tag. An existing release blocks creation.
-
-Enable immutable releases in the repository settings before publication. The
-automatic GitHub token is sufficient; no administrative settings API or extra
-policy token is used. Public release verification requires `immutable: true`.
-
-The publication workflow rehearses a private draft's bytes before publication
-and checks the anonymous public bytes afterward. Keep LICENSE, NOTICE, evidence,
-review documents, and applicable LICENSES with distributed artifacts. See the
-repository's release workflow and scripts for the enforced gates.
-
-## Local Project and documentation
-
-Run `nix develop --command make open` on macOS Apple Silicon to build local
-artifacts and open this repository's `gams.json` with the downloaded released
-Host. No sibling checkout is required; `tools/` and `gams_modules/` are ignored.
-The existing Host is retained, with release notices kept alongside it.
-
-Use `make serve-docs` (`DOCS_PORT` overrides 8080), `make validate-docs` and
-`make docs` for the pinned wiki. The site is built into `build/site/`; pushes to
-`release` publish it through GitHub Pages, independently of version tags.
-See [development documentation](docs/index.md) for Project behavior and checks.
+Both providers export `types` and `readwrite` from `wasi:sql@0.2.0-draft`, world `provider`. Connections/statements support query/exec. SQL-vec adds sqlite-vec support. Choose one provider: the artifacts share a WIT identity and must not be registered together. The complete contract is `plugins/sql.comp/wit/`.
