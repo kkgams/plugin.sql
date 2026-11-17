@@ -26,7 +26,7 @@ Use the pinned C/WASI and Rust test toolchain: `nix develop --command make <targ
 | `make docs` | Build pinned wiki in build.nosync/site/. |
 | `make serve-docs` | Serve wiki; independent DOCS_PORT defaults to 8080. |
 | `make validate-docs` | Validate wiki content. |
-| `make clean` | Remove build.nosync and identified downloads; refuse tracked paths/symlinks and preserve supplied tools/Units. |
+| `make clean` | Remove all of `build.nosync/`, `tools/` and `gams_modules/`, including unmarked contents; refuse tracked files and symlinks before deleting anything. |
 
 The local Project loads only the default SQL provider and the released SQL console with an in-memory database. Try `SELECT 42 AS answer;`; data disappears when the Host exits. To use vectors, replace the one local provider path with `build.nosync/plugin.sql-vec.wasm`. First launch downloads pinned supporting Units; an existing Host is never updated implicitly.
 
