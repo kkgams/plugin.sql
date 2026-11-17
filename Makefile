@@ -13,6 +13,9 @@ WIKI_MAKEFILE := build.nosync/wiki-$(WIKI_VERSION).mk
 WIKI_ENGINE := $(abspath build.nosync/wiki-$(WIKI_VERSION))
 WIT_SQL := $(shell find plugins/sql.comp/wit -type f -o -type d)
 WIT_VEC := $(shell find plugins/sql-vec.comp/wit -type f -o -type d)
+SQL_COMMON_CFLAGS := -O2 -DNDEBUG -DSQLITE_THREADSAFE=0 -DSQLITE_OMIT_LOAD_EXTENSION -DSQLITE_OMIT_WAL -DSQLITE_TEMP_STORE=3 -DSQLITE_DEFAULT_MEMSTATUS=0
+SQL_CFLAGS := -Ibuild.nosync/sql -Iplugins/sql.comp/vendor -Iplugins/sql.comp/sql-common $(SQL_COMMON_CFLAGS)
+VEC_CFLAGS := -Ibuild.nosync/sql-vec -Iplugins/sql-vec.comp/vendor -Iplugins/sql.comp/sql-common $(SQL_COMMON_CFLAGS) -DGAMS_SQL_WITH_VEC -DSQLITE_CORE -DSQLITE_VEC_STATIC -DSQLITE_VEC_OMIT_FS
 LEGAL := LICENSE NOTICE LICENSING.md $(sort $(wildcard LICENSES/*))
 export PYTHONDONTWRITEBYTECODE := 1
 export CARGO_TARGET_DIR := $(abspath build.nosync/cargo-target)
@@ -20,9 +23,15 @@ export CARGO_HOME := $(abspath build.nosync/cargo-home)
 NATIVE_CC ?= cc
 export TMPDIR := $(abspath build.nosync/tmp)
 
-.PHONY: test build package clean open docs serve-docs validate-docs
+.PHONY: compile_commands.json test build package clean open docs serve-docs validate-docs
 build: build.nosync/plugin.sql.wasm build.nosync/plugin.sql-vec.wasm
 package: build.nosync/plugin.sql-vec.wasm build.nosync/plugin.sql.wasm build.nosync/LICENSES.zip build.nosync/SHA256SUMS
+
+compile_commands.json: build.nosync/compile_commands.json
+
+build.nosync/compile_commands.json: Makefile flake.nix flake.lock scripts/compile-commands.py plugins/sql.comp/vendor/sqlite3.c plugins/sql-vec.comp/vendor/sqlite3.c plugins/sql-vec.comp/vendor/sqlite-vec.c plugins/sql.comp/component.c plugins/sql-vec.comp/component.c plugins/sql.comp/sql-common/sqlite_provider.c $(wildcard plugins/sql.comp/vendor/*.h plugins/sql-vec.comp/vendor/*.h) build.nosync/sql/provider.c build.nosync/sql/provider.h build.nosync/sql-vec/provider.c build.nosync/sql-vec/provider.h | build.nosync/tmp
+	$(PYTHON) scripts/compile-commands.py --entry wasi wasm32-wasip2-clang "$(SQL_CFLAGS)" "plugins/sql.comp/component.c plugins/sql.comp/sql-common/sqlite_provider.c build.nosync/sql/provider.c plugins/sql.comp/vendor/sqlite3.c" --entry wasi wasm32-wasip2-clang "$(VEC_CFLAGS)" "plugins/sql-vec.comp/component.c plugins/sql.comp/sql-common/sqlite_provider.c build.nosync/sql-vec/provider.c plugins/sql-vec.comp/vendor/sqlite3.c plugins/sql-vec.comp/vendor/sqlite-vec.c" > "$@.tmp"
+	mv "$@.tmp" "$@"
 
 build.nosync/tmp:
 	mkdir -p "$@"
@@ -40,7 +49,7 @@ build.nosync/TERMS: $(LEGAL) LICENSES Makefile | build.nosync/tmp
 
 build.nosync/compiled/sql.wasm: plugins/sql.comp/component.c plugins/sql.comp/sql-common/sqlite_provider.c $(wildcard plugins/sql.comp/vendor/*.h) plugins/sql.comp/vendor/sqlite3.c plugins/sql.comp/vendor build.nosync/sql/provider.c build.nosync/sql/provider.h build.nosync/sql/provider_component_type.o Makefile flake.lock
 	mkdir -p "$(@D)"
-	wasm32-wasip2-clang -o "$@" -mexec-model=reactor -Ibuild.nosync/sql -Iplugins/sql.comp/vendor -Iplugins/sql.comp/sql-common -O2 -DNDEBUG -DSQLITE_THREADSAFE=0 -DSQLITE_OMIT_LOAD_EXTENSION -DSQLITE_OMIT_WAL -DSQLITE_TEMP_STORE=3 -DSQLITE_DEFAULT_MEMSTATUS=0  build.nosync/sql/provider.c plugins/sql.comp/component.c plugins/sql.comp/vendor/sqlite3.c  build.nosync/sql/provider_component_type.o -Wl,--strip-all
+	wasm32-wasip2-clang -o "$@" -mexec-model=reactor $(SQL_CFLAGS)  build.nosync/sql/provider.c plugins/sql.comp/component.c plugins/sql.comp/vendor/sqlite3.c  build.nosync/sql/provider_component_type.o -Wl,--strip-all
 	wasm-tools strip -a "$@" -o "$@.strip"
 	mv "$@.strip" "$@"
 	wasm-tools validate "$@"
@@ -53,7 +62,7 @@ build.nosync/plugin.sql.wasm build.nosync/test/sql.wasm: build.nosync/compiled/s
 
 build.nosync/compiled/sql-vec.wasm: plugins/sql-vec.comp/component.c plugins/sql.comp/sql-common/sqlite_provider.c $(wildcard plugins/sql-vec.comp/vendor/*.h) plugins/sql-vec.comp/vendor/sqlite3.c plugins/sql-vec.comp/vendor/sqlite-vec.c plugins/sql-vec.comp/vendor build.nosync/sql-vec/provider.c build.nosync/sql-vec/provider.h build.nosync/sql-vec/provider_component_type.o Makefile flake.lock
 	mkdir -p "$(@D)"
-	wasm32-wasip2-clang -o "$@" -mexec-model=reactor -Ibuild.nosync/sql-vec -Iplugins/sql-vec.comp/vendor -Iplugins/sql.comp/sql-common -O2 -DNDEBUG -DSQLITE_THREADSAFE=0 -DSQLITE_OMIT_LOAD_EXTENSION -DSQLITE_OMIT_WAL -DSQLITE_TEMP_STORE=3 -DSQLITE_DEFAULT_MEMSTATUS=0 -DGAMS_SQL_WITH_VEC -DSQLITE_CORE -DSQLITE_VEC_STATIC -DSQLITE_VEC_OMIT_FS build.nosync/sql-vec/provider.c plugins/sql-vec.comp/component.c plugins/sql-vec.comp/vendor/sqlite3.c plugins/sql-vec.comp/vendor/sqlite-vec.c build.nosync/sql-vec/provider_component_type.o -Wl,--strip-all
+	wasm32-wasip2-clang -o "$@" -mexec-model=reactor $(VEC_CFLAGS) build.nosync/sql-vec/provider.c plugins/sql-vec.comp/component.c plugins/sql-vec.comp/vendor/sqlite3.c plugins/sql-vec.comp/vendor/sqlite-vec.c build.nosync/sql-vec/provider_component_type.o -Wl,--strip-all
 	wasm-tools strip -a "$@" -o "$@.strip"
 	mv "$@.strip" "$@"
 	wasm-tools validate "$@"

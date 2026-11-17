@@ -13,6 +13,7 @@ Use the pinned C/WASI and Rust test toolchain: `nix develop --command make <targ
 
 | Command | Purpose |
 | --- | --- |
+| `make compile_commands.json` | Generate clangd inputs and required bindings only (no WASM build). |
 | `make build` | Compile both providers with embedded complete terms. |
 | `make test` | Run existing query and vec_version assertions through native Wasmtime resource calls. |
 | `make package` | Build plugin.sql.wasm, plugin.sql-vec.wasm, LICENSES.zip and SHA256SUMS under build.nosync/. |
@@ -25,6 +26,9 @@ Use the pinned C/WASI and Rust test toolchain: `nix develop --command make <targ
 The local Project loads only the default SQL provider and the released SQL console with an in-memory database. Try `SELECT 42 AS answer;`; data disappears when the Host exits. To use vectors, replace the one local provider path with `build.nosync/plugin.sql-vec.wasm`. First launch downloads pinned supporting Units; an existing Host is never updated implicitly.
 
 Native Rust/Wasmtime tests retain connection/statement/query resource assertions for both providers and vec_version for SQL-vec. They compile separate test components, not release packages. Historical external Host tests remain available but are not standalone coverage. Full API and GUI integration need separate verification.
+
+Run `nix develop --offline --command make compile_commands.json` before using clangd.
+The database and index cache stay in ignored `build.nosync/`.
 
 ## API
 
