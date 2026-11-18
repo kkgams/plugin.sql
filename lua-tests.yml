@@ -1,0 +1,12 @@
+# Historical Host-run Lua tests use plugin.lua's host.call and main entry point.
+# Selene supplies Lua 5.3 builtins; these tests use no newer standard-library APIs.
+base: lua53
+
+globals:
+  host.call:
+    args:
+      - type: string
+      - type: "..."
+        required: false
+  main:
+    property: full-write

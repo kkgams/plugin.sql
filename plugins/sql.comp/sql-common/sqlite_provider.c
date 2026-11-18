@@ -28,26 +28,33 @@ struct exports_wasi_sql_types_error_t {
 
 static char *dup_bytes(const uint8_t *ptr, size_t len) {
   char *out = malloc(len + 1);
-  if (!out) return NULL;
-  if (len > 0) memcpy(out, ptr, len);
+  if (!out)
+    return NULL;
+  if (len > 0)
+    memcpy(out, ptr, len);
   out[len] = '\0';
   return out;
 }
 
 static exports_wasi_sql_types_own_error_t make_error(const char *message) {
   exports_wasi_sql_types_error_t *err = calloc(1, sizeof(*err));
-  if (!err) abort();
+  if (!err)
+    abort();
   err->trace = strdup(message ? message : "unknown sql error");
-  if (!err->trace) abort();
+  if (!err->trace)
+    abort();
   return exports_wasi_sql_types_error_new(err);
 }
 
-static exports_wasi_sql_types_own_error_t make_sqlite_error(sqlite3 *db, const char *prefix) {
-  const char *sqlite_message = db ? sqlite3_errmsg(db) : "sqlite database is not open";
+static exports_wasi_sql_types_own_error_t
+make_sqlite_error(sqlite3 *db, const char *prefix) {
+  const char *sqlite_message =
+      db ? sqlite3_errmsg(db) : "sqlite database is not open";
   size_t prefix_len = prefix ? strlen(prefix) : 0;
   size_t sqlite_len = strlen(sqlite_message);
   char *message = malloc(prefix_len + 2 + sqlite_len + 1);
-  if (!message) abort();
+  if (!message)
+    abort();
   size_t pos = 0;
   if (prefix_len > 0) {
     memcpy(message + pos, prefix, prefix_len);
@@ -68,10 +75,14 @@ static bool string_is(provider_string_t *value, const char *literal) {
   return value->len == len && memcmp(value->ptr, literal, len) == 0;
 }
 
-static int bind_statement_params(sqlite3_stmt *stmt, exports_wasi_sql_types_statement_t *statement) {
+static int
+bind_statement_params(sqlite3_stmt *stmt,
+                      exports_wasi_sql_types_statement_t *statement) {
   for (size_t i = 0; i < statement->params_len; i++) {
-    int rc = sqlite3_bind_text(stmt, (int)i + 1, statement->params[i], -1, SQLITE_TRANSIENT);
-    if (rc != SQLITE_OK) return rc;
+    int rc = sqlite3_bind_text(stmt, (int)i + 1, statement->params[i], -1,
+                               SQLITE_TRANSIENT);
+    if (rc != SQLITE_OK)
+      return rc;
   }
   return SQLITE_OK;
 }
@@ -80,7 +91,8 @@ static int bind_statement_params(sqlite3_stmt *stmt, exports_wasi_sql_types_stat
 static bool register_vec(sqlite3 *db, exports_wasi_sql_types_own_error_t *err) {
   char *vec_err = NULL;
   int rc = sqlite3_vec_init(db, &vec_err, NULL);
-  if (rc == SQLITE_OK) return true;
+  if (rc == SQLITE_OK)
+    return true;
   if (vec_err) {
     *err = make_error(vec_err);
     sqlite3_free(vec_err);
@@ -92,8 +104,7 @@ static bool register_vec(sqlite3 *db, exports_wasi_sql_types_own_error_t *err) {
 #endif
 
 bool exports_wasi_sql_types_static_connection_open(
-    provider_string_t *name,
-    exports_wasi_sql_types_own_connection_t *ret,
+    provider_string_t *name, exports_wasi_sql_types_own_connection_t *ret,
     exports_wasi_sql_types_own_error_t *err) {
   char *path = NULL;
   if (name->len == 0 || string_is(name, "memory")) {
@@ -106,19 +117,21 @@ bool exports_wasi_sql_types_static_connection_open(
     return false;
   }
 
-  exports_wasi_sql_types_connection_t *connection = calloc(1, sizeof(*connection));
+  exports_wasi_sql_types_connection_t *connection =
+      calloc(1, sizeof(*connection));
   if (!connection) {
     free(path);
     *err = make_error("out of memory while opening sql connection");
     return false;
   }
 
-  int rc = sqlite3_open_v2(path, &connection->db,
-                           SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_URI,
-                           NULL);
+  int rc = sqlite3_open_v2(
+      path, &connection->db,
+      SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_URI, NULL);
   if (rc != SQLITE_OK) {
     *err = make_sqlite_error(connection->db, "failed to open sql connection");
-    if (connection->db) sqlite3_close(connection->db);
+    if (connection->db)
+      sqlite3_close(connection->db);
     free(connection);
     free(path);
     return false;
@@ -139,8 +152,7 @@ bool exports_wasi_sql_types_static_connection_open(
 }
 
 bool exports_wasi_sql_types_static_statement_prepare(
-    provider_string_t *query,
-    provider_list_string_t *params,
+    provider_string_t *query, provider_list_string_t *params,
     exports_wasi_sql_types_own_statement_t *ret,
     exports_wasi_sql_types_own_error_t *err) {
   exports_wasi_sql_types_statement_t *statement = calloc(1, sizeof(*statement));
@@ -168,7 +180,8 @@ bool exports_wasi_sql_types_static_statement_prepare(
     for (size_t i = 0; i < params->len; i++) {
       statement->params[i] = dup_bytes(params->ptr[i].ptr, params->ptr[i].len);
       if (!statement->params[i]) {
-        for (size_t j = 0; j < i; j++) free(statement->params[j]);
+        for (size_t j = 0; j < i; j++)
+          free(statement->params[j]);
         free(statement->params);
         free(statement->query);
         free(statement);
@@ -183,15 +196,13 @@ bool exports_wasi_sql_types_static_statement_prepare(
 }
 
 void exports_wasi_sql_types_method_error_trace(
-    exports_wasi_sql_types_borrow_error_t self,
-    provider_string_t *ret) {
+    exports_wasi_sql_types_borrow_error_t self, provider_string_t *ret) {
   provider_string_dup(ret, self->trace ? self->trace : "unknown sql error");
 }
 
 bool exports_wasi_sql_readwrite_exec(
     exports_wasi_sql_readwrite_borrow_connection_t c,
-    exports_wasi_sql_readwrite_borrow_statement_t q,
-    uint32_t *ret,
+    exports_wasi_sql_readwrite_borrow_statement_t q, uint32_t *ret,
     exports_wasi_sql_readwrite_own_error_t *err) {
   sqlite3_stmt *stmt = NULL;
   int rc = sqlite3_prepare_v2(c->db, q->query, -1, &stmt, NULL);
@@ -207,7 +218,8 @@ bool exports_wasi_sql_readwrite_exec(
     return false;
   }
 
-  while ((rc = sqlite3_step(stmt)) == SQLITE_ROW) {}
+  while ((rc = sqlite3_step(stmt)) == SQLITE_ROW) {
+  }
   if (rc != SQLITE_DONE) {
     *err = make_sqlite_error(c->db, "failed to execute sql statement");
     sqlite3_finalize(stmt);
@@ -220,7 +232,8 @@ bool exports_wasi_sql_readwrite_exec(
   return true;
 }
 
-static void set_cell_from_sqlite(sqlite3_stmt *stmt, int col, exports_wasi_sql_types_data_type_t *out) {
+static void set_cell_from_sqlite(sqlite3_stmt *stmt, int col,
+                                 exports_wasi_sql_types_data_type_t *out) {
   int type = sqlite3_column_type(stmt, col);
   switch (type) {
   case SQLITE_INTEGER:
@@ -235,7 +248,8 @@ static void set_cell_from_sqlite(sqlite3_stmt *stmt, int col, exports_wasi_sql_t
     out->tag = EXPORTS_WASI_SQL_TYPES_DATA_TYPE_STR;
     const unsigned char *text = sqlite3_column_text(stmt, col);
     int len = sqlite3_column_bytes(stmt, col);
-    provider_string_dup_n(&out->val.str, (const char *)text, len < 0 ? 0 : (size_t)len);
+    provider_string_dup_n(&out->val.str, (const char *)text,
+                          len < 0 ? 0 : (size_t)len);
     break;
   }
   case SQLITE_BLOB: {
@@ -247,7 +261,8 @@ static void set_cell_from_sqlite(sqlite3_stmt *stmt, int col, exports_wasi_sql_t
       out->val.binary.len = 0;
     } else {
       out->val.binary.ptr = malloc((size_t)len);
-      if (!out->val.binary.ptr) abort();
+      if (!out->val.binary.ptr)
+        abort();
       memcpy(out->val.binary.ptr, blob, (size_t)len);
       out->val.binary.len = (size_t)len;
     }
@@ -261,17 +276,18 @@ static void set_cell_from_sqlite(sqlite3_stmt *stmt, int col, exports_wasi_sql_t
 }
 
 static bool append_query_row(exports_wasi_sql_readwrite_list_row_t *rows,
-                             sqlite3_stmt *stmt,
-                             int col_count,
+                             sqlite3_stmt *stmt, int col_count,
                              exports_wasi_sql_readwrite_own_error_t *err) {
   size_t old_len = rows->len;
   size_t add_len = (size_t)col_count;
-  if (add_len == 0) return true;
+  if (add_len == 0)
+    return true;
   if (old_len > SIZE_MAX - add_len) {
     *err = make_error("sql query result is too large");
     return false;
   }
-  exports_wasi_sql_readwrite_row_t *next = realloc(rows->ptr, (old_len + add_len) * sizeof(*next));
+  exports_wasi_sql_readwrite_row_t *next =
+      realloc(rows->ptr, (old_len + add_len) * sizeof(*next));
   if (!next) {
     *err = make_error("out of memory while building sql query result");
     return false;
@@ -333,23 +349,31 @@ bool exports_wasi_sql_readwrite_query(
   return true;
 }
 
-void exports_wasi_sql_types_statement_destructor(exports_wasi_sql_types_statement_t *rep) {
-  if (!rep) return;
-  for (size_t i = 0; i < rep->params_len; i++) free(rep->params[i]);
+void exports_wasi_sql_types_statement_destructor(
+    exports_wasi_sql_types_statement_t *rep) {
+  if (!rep)
+    return;
+  for (size_t i = 0; i < rep->params_len; i++)
+    free(rep->params[i]);
   free(rep->params);
   free(rep->query);
   free(rep);
 }
 
-void exports_wasi_sql_types_error_destructor(exports_wasi_sql_types_error_t *rep) {
-  if (!rep) return;
+void exports_wasi_sql_types_error_destructor(
+    exports_wasi_sql_types_error_t *rep) {
+  if (!rep)
+    return;
   free(rep->trace);
   free(rep);
 }
 
-void exports_wasi_sql_types_connection_destructor(exports_wasi_sql_types_connection_t *rep) {
-  if (!rep) return;
-  if (rep->db) sqlite3_close(rep->db);
+void exports_wasi_sql_types_connection_destructor(
+    exports_wasi_sql_types_connection_t *rep) {
+  if (!rep)
+    return;
+  if (rep->db)
+    sqlite3_close(rep->db);
   free(rep->name);
   free(rep);
 }
